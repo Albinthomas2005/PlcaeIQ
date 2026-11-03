@@ -23,171 +23,91 @@ export const PlacementProvider = ({ children }) => {
     return localStorage.getItem('placeiq_active_company') || 'cmp-1';
   });
 
-  // Live Database States (fetched via PHP API from SQLite/MySQL database)
-  const [students, setStudents] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [interviews, setInterviews] = useState([]);
-  const [dataLoading, setDataLoading] = useState(true);
-
-  // Global Toast Notification
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = 'info') => {
-    setToast({ message, type, id: Date.now() });
-    setTimeout(() => {
-      setToast(null);
-    }, 4000);
-  };
-
-  // Sync theme
-  useEffect(() => {
-    localStorage.setItem('placeiq_theme', darkMode ? 'dark' : 'light');
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  useEffect(() => {
-    localStorage.setItem('placeiq_role', currentRole);
-  }, [currentRole]);
-
-  useEffect(() => {
-    localStorage.setItem('placeiq_active_student', activeStudentId);
-  }, [activeStudentId]);
-
-  useEffect(() => {
-    localStorage.setItem('placeiq_active_company', activeCompanyId);
-  }, [activeCompanyId]);
-
-  // Authentication & Session Management
-  const [authSession, setAuthSession] = useState(() => {
+  // Frontend-only demo data persisted in LocalStorage. No PHP/API/database required.
+  const readStore = (key, fallback) => {
     try {
-      const saved = localStorage.getItem('placeiq_auth_session');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.isLoggedIn) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error('Failed to parse auth session from localStorage', e);
-    }
-    return {
-      isLoggedIn: false,
-      role: null,
-      user: null
-    };
-  });
-
-  useEffect(() => {
-    localStorage.setItem('placeiq_auth_session', JSON.stringify(authSession));
-    if (authSession?.isLoggedIn && authSession?.role) {
-      setCurrentRole(authSession.role);
-      if (authSession.role === 'student' && authSession.user?.studentId) {
-        setActiveStudentId(authSession.user.studentId);
-      }
-    }
-  }, [authSession]);
-
-  // Fetch all records from the PHP Database backend on mount
-  const fetchDataFromDatabase = async () => {
-    try {
-      setDataLoading(true);
-      const [resStd, resCmp, resJob, resApp, resInt] = await Promise.all([
-        fetch('/api/students.php').then(r => r.json()).catch(() => ({ success: false })),
-        fetch('/api/companies.php').then(r => r.json()).catch(() => ({ success: false })),
-        fetch('/api/jobs.php').then(r => r.json()).catch(() => ({ success: false })),
-        fetch('/api/applications.php').then(r => r.json()).catch(() => ({ success: false })),
-        fetch('/api/interviews.php').then(r => r.json()).catch(() => ({ success: false }))
-      ]);
-
-      if (resStd?.success) setStudents(resStd.data || []);
-      if (resCmp?.success) setCompanies(resCmp.data || []);
-      if (resJob?.success) setJobs(resJob.data || []);
-      if (resApp?.success) setApplications(resApp.data || []);
-      if (resInt?.success) setInterviews(resInt.data || []);
-    } catch (err) {
-      console.error('Error fetching data from database:', err);
-    } finally {
-      setDataLoading(false);
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch {
+      return fallback;
     }
   };
 
-  useEffect(() => {
-    fetchDataFromDatabase();
-  }, []);
+  const demoStudents = [
+    { id:'std-1', name:'Student 1', rollNo:'1', email:'student1@campus.edu', phone:'+91 98765 43210', department:'Computer Science & Engineering', branchCode:'CSE', cgpa:9.4, backlogs:0, passingYear:2026, skills:['React','Node.js','Python','SQL'], status:'Seeking', avatar:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+    { id:'std-2', name:'Student 2', rollNo:'2', email:'student2@campus.edu', phone:'+91 98234 56789', department:'Electronics & Communication', branchCode:'ECE', cgpa:7.15, backlogs:0, passingYear:2026, skills:['C','Python','Embedded Systems'], status:'Seeking' },
+    { id:'std-3', name:'Student 3', rollNo:'3', email:'student3@campus.edu', phone:'+91 98765 12345', department:'Computer Science & Engineering', branchCode:'CSE', cgpa:9.35, backlogs:0, passingYear:2026, skills:['Java','React','AWS'], status:'Placed', placedCompany:'Microsoft IDC', placedPackage:'22 LPA' }
+  ];
+  const demoCompanies = [
+    { id:'cmp-1', name:'Google India', industry:'Technology / Cloud / AI', website:'https://careers.google.com', location:'Bengaluru / Hyderabad', hrContact:'Campus Hiring Team', email:'campus-hiring@google.com', tier:'Tier 1 (Dream)', status:'Active', totalHires:18, avgPackage:'28.5 LPA' },
+    { id:'cmp-2', name:'Microsoft IDC', industry:'Cloud Computing / Enterprise Software', website:'https://careers.microsoft.com', location:'Bengaluru / Hyderabad', hrContact:'Talent Acquisition', email:'idc-recruitment@microsoft.com', tier:'Tier 1 (Dream)', status:'Active', totalHires:24, avgPackage:'22.0 LPA' },
+    { id:'cmp-3', name:'Amazon Development Centre', industry:'E-Commerce / Cloud', website:'https://amazon.jobs', location:'Bengaluru', hrContact:'Campus Hiring', email:'university@amazon.com', tier:'Tier 1 (Dream)', status:'Active', totalHires:12, avgPackage:'18 LPA' }
+  ];
+  const demoJobs = [
+    { id:'job-1', companyId:'cmp-1', companyName:'Google India', title:'Software Engineer', role:'Software Development', location:'Bengaluru / Hybrid', packageCtc:'28.5', minCgpa:7.5, maxBacklogs:0, allowedBranches:['CSE','IT','ECE'], deadline:'2027-01-15', vacancies:10, status:'Open', description:'Build reliable products and services.' },
+    { id:'job-2', companyId:'cmp-2', companyName:'Microsoft IDC', title:'Associate Software Engineer', role:'Engineering', location:'Hyderabad', packageCtc:'22', minCgpa:7, maxBacklogs:0, allowedBranches:['CSE','IT','ECE'], deadline:'2027-01-20', vacancies:8, status:'Open', description:'Work on cloud and enterprise products.' },
+    { id:'job-3', companyId:'cmp-3', companyName:'Amazon Development Centre', title:'Graduate SDE', role:'Software Development', location:'Bengaluru', packageCtc:'18', minCgpa:7, maxBacklogs:0, allowedBranches:['CSE','IT'], deadline:'2027-01-25', vacancies:12, status:'Open', description:'Develop scalable customer-focused systems.' }
+  ];
+  const [students,setStudents] = useState(() => readStore('placeiq_students',demoStudents));
+  const [companies,setCompanies] = useState(() => readStore('placeiq_companies',demoCompanies));
+  const [jobs,setJobs] = useState(() => readStore('placeiq_jobs',demoJobs));
+  const [applications,setApplications] = useState(() => readStore('placeiq_applications',[]));
+  const [interviews,setInterviews] = useState(() => readStore('placeiq_interviews',[]));
+  const [dataLoading,setDataLoading] = useState(false);
+  const [toast,setToast] = useState(null);
+  const showToast = (message,type='info') => {
+    setToast({message,type,id:Date.now()});
+    setTimeout(()=>setToast(null),4000);
+  };
 
-  // Login authentication calling PHP backend against database
-  const login = async (identifier, password = '', roleHint = null) => {
-    try {
-      const response = await fetch('/api/auth.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password, roleHint })
-      });
-      const data = await response.json();
+  const [darkMode,setDarkMode] = useState(()=>localStorage.getItem('placeiq_theme')==='dark');
+  const [currentRole,setCurrentRole] = useState(()=>localStorage.getItem('placeiq_role')||'officer');
+  const [activeStudentId,setActiveStudentId] = useState(()=>localStorage.getItem('placeiq_active_student')||'std-1');
+  const [activeCompanyId,setActiveCompanyId] = useState(()=>localStorage.getItem('placeiq_active_company')||'cmp-1');
+  const [authSession,setAuthSession] = useState(()=>readStore('placeiq_auth_session',{isLoggedIn:false,role:null,user:null}));
 
-      if (data.success) {
-        setAuthSession({
-          isLoggedIn: true,
-          role: data.role,
-          user: data.user
-        });
-        setCurrentRole(data.role);
-        if (data.role === 'student' && data.user?.studentId) {
-          setActiveStudentId(data.user.studentId);
-        } else if (data.role === 'company' && data.user?.companyId) {
-          setActiveCompanyId(data.user.companyId);
-        }
-        showToast(`Welcome, ${data.user.name}!`, 'success');
-        fireConfetti();
-        return { success: true, role: data.role, path: data.path };
-      } else {
-        showToast(data.message || 'Authentication failed', 'error');
-        return { success: false, message: data.message };
-      }
-    } catch (err) {
-      console.error('Database auth error:', err);
-      showToast('Error communicating with database backend.', 'error');
-      return { success: false, message: 'Server communication error' };
+  useEffect(()=>{ localStorage.setItem('placeiq_theme',darkMode?'dark':'light'); document.documentElement.classList.toggle('dark',darkMode); },[darkMode]);
+  useEffect(()=>{ localStorage.setItem('placeiq_role',currentRole); },[currentRole]);
+  useEffect(()=>{ localStorage.setItem('placeiq_active_student',activeStudentId); },[activeStudentId]);
+  useEffect(()=>{ localStorage.setItem('placeiq_active_company',activeCompanyId); },[activeCompanyId]);
+  useEffect(()=>{ localStorage.setItem('placeiq_auth_session',JSON.stringify(authSession)); },[authSession]);
+  useEffect(()=>{ localStorage.setItem('placeiq_students',JSON.stringify(students)); },[students]);
+  useEffect(()=>{ localStorage.setItem('placeiq_companies',JSON.stringify(companies)); },[companies]);
+  useEffect(()=>{ localStorage.setItem('placeiq_jobs',JSON.stringify(jobs)); },[jobs]);
+  useEffect(()=>{ localStorage.setItem('placeiq_applications',JSON.stringify(applications)); },[applications]);
+  useEffect(()=>{ localStorage.setItem('placeiq_interviews',JSON.stringify(interviews)); },[interviews]);
+
+  const fetchDataFromDatabase = async () => { setDataLoading(false); return {success:true,mode:'local'}; };
+  const login = async(identifier,password='',roleHint=null) => {
+    const id=String(identifier||'').trim().toLowerCase();
+    const pass=String(password||'');
+    let role=null,user=null,path='/login';
+    if(roleHint==='officer' && ['admin@placement.edu','admin'].includes(id) && pass==='admin123'){
+      role='officer'; user={name:'Dr. Aris Thorne',email:'admin@placement.edu',role, title:'Placement Directorate Head'}; path='/officer';
+    } else if(roleHint==='company' && id==='campus-hiring@google.com' && pass==='hiring123'){
+      role='company'; user={name:'Google India',email:id,role,companyId:'cmp-1',tier:'Tier 1 (Dream)'}; path='/company';
+    } else if(roleHint==='student'){
+      const student=students.find(s=>String(s.rollNo||s.id).toLowerCase()===id || String(s.email||'').toLowerCase()===id);
+      if(student && pass===String(student.rollNo)){ role='student'; user={...student,studentId:student.id,role}; path='/student'; }
     }
+    if(!role){ const message='Invalid login ID or password. Please check your credentials.'; showToast(message,'error'); return {success:false,message}; }
+    const session={isLoggedIn:true,role,user};
+    setAuthSession(session); setCurrentRole(role);
+    if(role==='student') setActiveStudentId(user.studentId);
+    if(role==='company') setActiveCompanyId(user.companyId);
+    showToast(`Welcome, ${user.name}!`,'success'); fireConfetti();
+    return {success:true,role,path};
   };
+  const logout=()=>{ setAuthSession({isLoggedIn:false,role:null,user:null}); localStorage.removeItem('placeiq_auth_session'); showToast('Signed out of placement portal','info'); };
 
-  const logout = () => {
-    setAuthSession({
-      isLoggedIn: false,
-      role: null,
-      user: null
-    });
-    localStorage.removeItem('placeiq_auth_session');
-    showToast('Signed out of placement portal', 'info');
-  };
-
-  // Active candidate and recruiter profiles resolved directly from live database state
   const currentStudent = (() => {
-    if (authSession?.isLoggedIn && authSession?.role === 'student' && authSession?.user?.studentId) {
-      const authenticated = students.find(s => s.id === authSession.user.studentId);
-      if (authenticated) return authenticated;
-      return authSession.user;
-    }
-    return students.find(s => s.id === activeStudentId) || students[0] || null;
+    if(authSession?.isLoggedIn && authSession.role==='student' && authSession.user?.studentId)
+      return students.find(s=>s.id===authSession.user.studentId)||authSession.user;
+    return students.find(s=>s.id===activeStudentId)||students[0]||null;
   })();
-
-  const currentCompany = companies.find(c => c.id === activeCompanyId) || companies[0] || null;
-
-  const isAdmin = Boolean(authSession?.isLoggedIn && authSession?.role === 'officer');
-
-  const fireConfetti = () => {
-    confetti({
-      particleCount: 120,
-      spread: 75,
-      origin: { y: 0.6 }
-    });
-  };
+  const currentCompany = companies.find(c=>c.id===(authSession?.role==='company'?authSession.user?.companyId:activeCompanyId)) || companies[0] || null;
+  const isAdmin=Boolean(authSession?.isLoggedIn&&authSession.role==='officer');
+  const fireConfetti=()=>confetti({particleCount:120,spread:75,origin:{y:0.6}});
 
   // Eligibility Engine
   const checkEligibility = (student, job) => {
@@ -239,284 +159,37 @@ export const PlacementProvider = ({ children }) => {
     };
   };
 
-  // Job Application: Saves directly into Database via PHP API
-  const applyForJob = async (jobId, studentId = currentStudent.id, note = '') => {
-    const student = students.find(s => s.id === studentId);
-    const job = jobs.find(j => j.id === jobId);
 
-    if (!student || !job) {
-      showToast('Student or Job record not found.', 'error');
-      return { success: false, message: 'Invalid records' };
-    }
-
-    const existing = applications.find(a => a.jobId === jobId && a.studentId === studentId);
-    if (existing) {
-      showToast(`You have already applied for ${job.title} at ${job.companyName}!`, 'warning');
-      return { success: false, message: 'Already applied' };
-    }
-
-    try {
-      const response = await fetch('/api/applications.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, studentId, note })
-      });
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setApplications(prev => [data.data, ...prev]);
-        showToast(data.message || `Application successfully submitted for ${job.title}!`, 'success');
-        fireConfetti();
-        return { success: true };
-      } else {
-        showToast(data.message || 'Failed to submit application', 'error');
-        return { success: false, message: data.message };
-      }
-    } catch (err) {
-      console.error('Error applying for job in database:', err);
-      showToast('Database error while submitting application', 'error');
-      return { success: false };
-    }
+  const applyForJob = async(jobId,studentId=currentStudent?.id,note='') => {
+    const student=students.find(s=>s.id===studentId), job=jobs.find(j=>j.id===jobId);
+    if(!student||!job){showToast('Student or Job record not found.','error');return {success:false};}
+    if(applications.some(a=>a.jobId===jobId&&a.studentId===studentId)){showToast('You have already applied for this job.','warning');return {success:false,message:'Already applied'};}
+    const app={id:`app-${Date.now()}`,jobId,studentId,companyId:job.companyId,companyName:job.companyName,jobTitle:job.title,studentName:student.name,studentRoll:student.rollNo,studentBranch:student.branchCode,status:'Applied',note,appliedAt:new Date().toISOString()};
+    setApplications(prev=>[app,...prev]); showToast('Application submitted successfully!','success'); fireConfetti(); return {success:true};
   };
-
-  // Update Application Status in Database via PHP API
-  const updateApplicationStatus = async (appId, newStatus, offeredPackage = null, feedbackNote = '') => {
-    try {
-      const response = await fetch('/api/applications.php', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: appId, status: newStatus, offeredPackage, notes: feedbackNote })
-      });
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setApplications(prev => prev.map(a => a.id === appId ? data.data : a));
-        if (newStatus === 'Offered') {
-          // Re-sync students list to reflect placed status
-          fetch('/api/students.php')
-            .then(r => r.json())
-            .then(res => { if (res.success) setStudents(res.data); });
-          fireConfetti();
-        }
-        showToast(`Candidate status updated to "${newStatus}" in database!`, 'success');
-      }
-    } catch (err) {
-      console.error('Failed to update status in database:', err);
-      showToast('Failed to update application in database', 'error');
-    }
+  const updateApplicationStatus=async(appId,newStatus,offeredPackage=null,feedbackNote='')=>{
+    setApplications(prev=>prev.map(a=>a.id===appId?{...a,status:newStatus,offeredPackage:offeredPackage??a.offeredPackage,notes:feedbackNote}:a));
+    if(newStatus==='Offered'){ const app=applications.find(a=>a.id===appId); if(app) setStudents(prev=>prev.map(s=>s.id===app.studentId?{...s,status:'Placed',placedCompany:app.companyName,placedPackage:offeredPackage||s.placedPackage}:s)); fireConfetti(); }
+    showToast(`Candidate status updated to "${newStatus}".`,'success');
   };
-
-  // Schedule Interview in Database via PHP API
-  const scheduleInterview = async (interviewData) => {
-    try {
-      const response = await fetch('/api/interviews.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(interviewData)
-      });
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setInterviews(prev => [data.data, ...prev]);
-        // Also refresh applications to reflect interview round
-        fetch('/api/applications.php')
-          .then(r => r.json())
-          .then(res => { if (res.success) setApplications(res.data); });
-        showToast(`Interview scheduled and saved to database!`, 'success');
-      }
-    } catch (err) {
-      console.error('Failed to schedule interview:', err);
-      showToast('Error saving interview schedule', 'error');
-    }
+  const scheduleInterview=async(interviewData)=>{
+    const interview={id:`int-${Date.now()}`,...interviewData};
+    setInterviews(prev=>[interview,...prev]); showToast('Interview scheduled successfully!','success');
+    return {success:true,data:interview};
   };
-
-  // CRUD for Students: Saved to Database via PHP API
-  const addStudent = async (studentData) => {
-    try {
-      const response = await fetch('/api/students.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(studentData)
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setStudents(prev => [data.data, ...prev]);
-        showToast(data.message || 'Student enrolled into placement database!', 'success');
-      }
-    } catch (err) {
-      console.error('Error adding student:', err);
-      showToast('Failed to enroll student', 'error');
-    }
-  };
-
-  const updateStudent = async (id, updatedFields) => {
-    try {
-      const response = await fetch('/api/students.php', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...updatedFields })
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setStudents(prev => prev.map(s => s.id === id ? data.data : s));
-        setAuthSession(prev => {
-          if (prev?.isLoggedIn && prev?.user?.studentId === id) {
-            return {
-              ...prev,
-              user: {
-                ...prev.user,
-                ...updatedFields
-              }
-            };
-          }
-          return prev;
-        });
-        showToast('Student profile updated in database', 'info');
-      }
-    } catch (err) {
-      console.error('Error updating student:', err);
-      showToast('Failed to update student profile', 'error');
-    }
-  };
-
-  const deleteStudent = async (id) => {
-    try {
-      const response = await fetch(`/api/students.php?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setStudents(prev => prev.filter(s => s.id !== id));
-        showToast('Student profile removed from database', 'warning');
-      }
-    } catch (err) {
-      console.error('Error deleting student:', err);
-      showToast('Failed to remove student', 'error');
-    }
-  };
-
-  // CRUD for Companies: Saved to Database via PHP API
-  const addCompany = async (companyData) => {
-    try {
-      const response = await fetch('/api/companies.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(companyData)
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setCompanies(prev => [data.data, ...prev]);
-        showToast(`Company registered in database!`, 'success');
-      }
-    } catch (err) {
-      console.error('Error adding company:', err);
-      showToast('Failed to register company', 'error');
-    }
-  };
-
-  const updateCompany = async (id, updatedFields) => {
-    try {
-      const response = await fetch('/api/companies.php', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...updatedFields })
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setCompanies(prev => prev.map(c => c.id === id ? data.data : c));
-        showToast('Company record updated in database', 'info');
-      }
-    } catch (err) {
-      console.error('Error updating company:', err);
-    }
-  };
-
-  const deleteCompany = async (id) => {
-    try {
-      const response = await fetch(`/api/companies.php?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setCompanies(prev => prev.filter(c => c.id !== id));
-        showToast('Company record removed from database', 'warning');
-      }
-    } catch (err) {
-      console.error('Error deleting company:', err);
-    }
-  };
-
-  // CRUD for Jobs: Saved to Database via PHP API
-  const addJob = async (jobData) => {
-    try {
-      const response = await fetch('/api/jobs.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(jobData)
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setJobs(prev => [data.data, ...prev]);
-        showToast(`Campus drive published: ${data.data.title}!`, 'success');
-      }
-    } catch (err) {
-      console.error('Error adding job:', err);
-      showToast('Failed to publish drive', 'error');
-    }
-  };
-
-  const updateJob = async (id, updatedFields) => {
-    try {
-      const response = await fetch('/api/jobs.php', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...updatedFields })
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setJobs(prev => prev.map(j => j.id === id ? data.data : j));
-        showToast('Job listing updated in database', 'info');
-      }
-    } catch (err) {
-      console.error('Error updating job:', err);
-    }
-  };
-
-  const deleteJob = async (id) => {
-    try {
-      const response = await fetch(`/api/jobs.php?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setJobs(prev => prev.filter(j => j.id !== id));
-        showToast('Job listing archived in database', 'warning');
-      }
-    } catch (err) {
-      console.error('Error deleting job:', err);
-    }
-  };
-
-  // Reset to Baseline Database State
-  const resetToDemoData = async () => {
-    try {
-      const response = await fetch('/api/reset.php', { method: 'POST' });
-      const data = await response.json();
-      if (data.success && data.data) {
-        setStudents(data.data.students || []);
-        setCompanies(data.data.companies || []);
-        setJobs(data.data.jobs || []);
-        setApplications(data.data.applications || []);
-        setInterviews(data.data.interviews || []);
-        setCurrentRole('officer');
-        setActiveStudentId('std-1');
-        setActiveCompanyId('cmp-1');
-        showToast('Placement directory successfully synchronized with database!', 'success');
-      }
-    } catch (err) {
-      console.error('Error resetting database:', err);
-      showToast('Failed to reset database', 'error');
-    }
+  const addStudent=async(data)=>{const student={id:`std-${Date.now()}`,status:'Seeking',backlogs:0,...data};setStudents(p=>[student,...p]);showToast('Student enrolled successfully!','success');return student;};
+  const updateStudent=async(id,fields)=>{setStudents(p=>p.map(s=>s.id===id?{...s,...fields}:s));setAuthSession(p=>p?.user?.studentId===id?{...p,user:{...p.user,...fields}}:p);showToast('Student profile updated.','success');};
+  const deleteStudent=async(id)=>{setStudents(p=>p.filter(s=>s.id!==id));setApplications(p=>p.filter(a=>a.studentId!==id));showToast('Student removed.','warning');};
+  const addCompany=async(data)=>{const company={id:`cmp-${Date.now()}`,status:'Active',...data};setCompanies(p=>[company,...p]);showToast('Company added successfully!','success');return company;};
+  const updateCompany=async(id,fields)=>{setCompanies(p=>p.map(c=>c.id===id?{...c,...fields}:c));showToast('Company updated.','success');};
+  const deleteCompany=async(id)=>{setCompanies(p=>p.filter(c=>c.id!==id));showToast('Company removed.','warning');};
+  const addJob=async(data)=>{const company=companies.find(c=>c.id===(data.companyId||activeCompanyId))||currentCompany;const job={id:`job-${Date.now()}`,status:'Open',companyId:company?.id,companyName:company?.name,...data};setJobs(p=>[job,...p]);showToast(`Campus drive published: ${job.title}!`,'success');return job;};
+  const updateJob=async(id,fields)=>{setJobs(p=>p.map(j=>j.id===id?{...j,...fields}:j));showToast('Job listing updated.','success');};
+  const deleteJob=async(id)=>{setJobs(p=>p.map(j=>j.id===id?{...j,status:'Closed'}:j));showToast('Job listing closed.','warning');};
+  const resetToDemoData=async()=>{
+    setStudents(demoStudents);setCompanies(demoCompanies);setJobs(demoJobs);setApplications([]);setInterviews([]);
+    setCurrentRole('officer');setActiveStudentId('std-1');setActiveCompanyId('cmp-1');
+    showToast('Demo data reset successfully.','success');
   };
 
   return (
