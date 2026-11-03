@@ -63,7 +63,7 @@ const AppLayout = () => {
       <Navbar />
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Navigate to={authSession?.isLoggedIn ? (authSession.role === "student" ? "/student" : authSession.role === "company" ? "/company" : "/officer") : "/login"} replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/student" element={
             <ProtectedRoute requiredRole="student">
@@ -80,9 +80,9 @@ const AppLayout = () => {
               <CompanyDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/jobs" element={<JobsPage />} />
-          <Route path="/results" element={<ResultsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/jobs" element={<ProtectedRoute requiredRole="student"><JobsPage /></ProtectedRoute>} />
+          <Route path="/results" element={<ProtectedRoute requiredRole="student"><ResultsPage /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to={authSession?.isLoggedIn ? (authSession.role === "student" ? "/student" : authSession.role === "company" ? "/company" : "/officer") : "/login"} replace />} />
         </Routes>
       </main>
       <Footer />
