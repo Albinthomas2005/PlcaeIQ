@@ -39,6 +39,7 @@ export const Navbar = () => {
   const [notifOpen, setNotifOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
+  const roleHome = authSession?.role === 'student' ? '/student' : authSession?.role === 'company' ? '/company' : '/officer';
 
   const handleSignOut = () => {
     logout();
@@ -50,7 +51,7 @@ export const Navbar = () => {
       <div className="w-full flex items-center justify-between gap-4">
         
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to={authSession?.isLoggedIn ? roleHome : "/login"} className="flex items-center gap-3 group">
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#6c5ce7] via-[#7d5fff] to-[#a29bfe] flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
             <GraduationCap className="w-6 h-6 text-white" />
           </div>
@@ -67,16 +68,7 @@ export const Navbar = () => {
 
         {/* Center Nav Links - Role-aware */}
         <nav className="hidden lg:flex items-center gap-1.5 bg-slate-100/90 dark:bg-slate-900/90 p-1.5 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-inner">
-          <Link
-            to="/"
-            className={`px-5 py-2.5 text-base font-extrabold rounded-full transition-all duration-200 ${
-              isActive('/') 
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Home
-          </Link>
+
           
           {/* TPO Directorate - ONLY for verified Admin */}
           {authSession?.isLoggedIn && authSession?.role === 'officer' && (
@@ -123,29 +115,17 @@ export const Navbar = () => {
             </Link>
           )}
 
-          <Link
-            to="/jobs"
-            className={`px-5 py-2.5 text-base font-extrabold rounded-full transition-all duration-200 flex items-center gap-2 ${
-              isActive('/jobs') 
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            Active Drives
-          </Link>
+          {authSession?.isLoggedIn && authSession.role === 'student' && (
+            <Link to="/jobs" className={`px-5 py-2.5 text-base font-extrabold rounded-full transition-all duration-200 flex items-center gap-2 ${isActive('/jobs') ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}>
+              <Briefcase className="w-4 h-4" /> Browse Jobs
+            </Link>
+          )}
 
-          <Link
-            to="/results"
-            className={`px-5 py-2.5 text-base font-extrabold rounded-full transition-all duration-200 flex items-center gap-2 ${
-              isActive('/results') 
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Award className="w-4 h-4" />
-            Results
-          </Link>
+          {authSession?.isLoggedIn && authSession.role === 'student' && (
+            <Link to="/results" className={`px-5 py-2.5 text-base font-extrabold rounded-full transition-all duration-200 flex items-center gap-2 ${isActive('/results') ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}>
+              <Award className="w-4 h-4" /> Placement Results
+            </Link>
+          )}
         </nav>
 
         {/* Right Action Tools: Role Switcher, Notifications, Dark Mode & Reset */}
@@ -233,7 +213,7 @@ export const Navbar = () => {
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-[#7d5fff] hover:opacity-95 text-white text-xs sm:text-sm font-black transition-all shadow-md shadow-indigo-500/25"
             >
               <LogIn className="w-4 h-4" />
-              <span>Student & Admin Login</span>
+              <span>Sign In</span>
             </Link>
           )}
 
