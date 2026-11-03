@@ -4,25 +4,6 @@ import confetti from 'canvas-confetti';
 const PlacementContext = createContext();
 
 export const PlacementProvider = ({ children }) => {
-  // Theme state
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('placeiq_theme');
-    return saved ? saved === 'dark' : false;
-  });
-
-  // Current simulation role: 'officer' | 'student' | 'company'
-  const [currentRole, setCurrentRole] = useState(() => {
-    return localStorage.getItem('placeiq_role') || 'officer';
-  });
-
-  const [activeStudentId, setActiveStudentId] = useState(() => {
-    return localStorage.getItem('placeiq_active_student') || 'std-1';
-  });
-
-  const [activeCompanyId, setActiveCompanyId] = useState(() => {
-    return localStorage.getItem('placeiq_active_company') || 'cmp-1';
-  });
-
   // Demo records, persisted locally. These replace the unavailable PHP API.
   const readStore=(key,fallback)=>{try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch{return fallback;}};
   const demoStudents=[
