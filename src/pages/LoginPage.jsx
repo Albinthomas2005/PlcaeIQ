@@ -21,8 +21,8 @@ export const LoginPage = () => {
   const { login, authSession, logout, students } = usePlacement();
 
   const [activeTab, setActiveTab] = useState('student'); // 'student' | 'officer' | 'company'
-  const [identifier, setIdentifier] = useState('1'); // Default to Student 1
-  const [password, setPassword] = useState('1');     // Default to Password 1
+  const [identifier, setIdentifier] = useState('1'); // Student demo account
+  const [password, setPassword] = useState('1');     // Demo password
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -54,7 +54,7 @@ export const LoginPage = () => {
       }
     } catch {
       setLoading(false);
-      setError('Unable to authenticate with database backend.');
+      setError('Unable to authenticate. Please check your demo credentials.');
     }
   };
 
@@ -102,7 +102,7 @@ export const LoginPage = () => {
         {/* Security / Portal Badge */}
         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-black uppercase tracking-wider shadow-sm">
           <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
-          <span>PlaceIQ Centralized Campus Recruitment Portal • Live Authentication</span>
+          <span>PlaceIQ Centralized Campus Recruitment Portal • Local Demo Authentication</span>
         </div>
 
         {/* Big Stretched Card */}
